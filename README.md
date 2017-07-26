@@ -3,7 +3,7 @@ Sky Walking | [中文](https://github.com/wu-sheng/sky-walking/wiki/sky-walking-
 
 <img src="https://sky-walking.github.io/page-resources/3.0/skywalking.png" alt="Sky Walking logo" height="90px" align="right" />
 
-**SkyWalking 3.x**: APM for Distributed Systems, also known Distributed Tracing System.
+**SkyWalking 3**: APM for Distributed Systems, also known Distributed Tracing System.
 
 [![Build Status](https://travis-ci.org/wu-sheng/sky-walking.svg?branch=master)](https://travis-ci.org/wu-sheng/sky-walking)
 [![Coverage Status](https://coveralls.io/repos/github/wu-sheng/sky-walking/badge.svg?branch=master&forceUpdate=2)](https://coveralls.io/github/wu-sheng/sky-walking?branch=master)
@@ -19,35 +19,30 @@ Sky Walking | [中文](https://github.com/wu-sheng/sky-walking/wiki/sky-walking-
 * High performance streaming analysis.
 * The UI released on [wu-sheng/sky-walking-ui](https://github.com/wu-sheng/sky-walking-ui)
 
-___
-
-<a href="https://github.com/wu-sheng/sky-walking">
-<img src="https://sky-walking.github.io/page-resources/3.0/oneapm-award.png" alt="OneAPM Open Source Achievement Award" height="110px" align="left" />
-</a>
-
-In October 2016, Sky Walking won `OneAPM Open Source Achievement Award`. The award appreciates sky walking for its "*contribution to popularization of APM technology*". <br/><br/><br/> 
-Thanks all users of sky walking project.
-
-___
 
 # Contributors
 _In chronological order_
-* 吴晟 [@wu-sheng](https://github.com/wu-sheng)  Principle Engineer, 2012 Lab, Huawei. 
-* 张鑫 [@ascrutae](https://github.com/ascrutae)   
+* 吴晟 [**PMC Member**] [@wu-sheng](https://github.com/wu-sheng)  Principle Engineer, 2012 Lab, Huawei. 
+* 张鑫 [**PMC Member**] [@ascrutae](https://github.com/ascrutae)   
 * 谭真 [@mircoteam](https://github.com/mircoteam)  Advanced R&D Engineers, Creative & Interactive Group.
 * 徐妍 [@TastySummer](https://github.com/TastySummer)
-* 彭勇升 [@pengys5](https://github.com/pengys5)   Technical Specialist, OneAPM.
+* 彭勇升 [**PMC Member**] [@pengys5](https://github.com/pengys5)   Technical Specialist, OneAPM.
 * 戴文
 * 柏杨 [@bai-yang](https://github.com/bai-yang)  Senior Engineer, Alibaba Group.
+* 陈凤 [@trey03](https://github.com/trey03)
+* [More contributors](https://github.com/wu-sheng/sky-walking/graphs/contributors)
 
 This project adheres to the Contributor Covenant [code of conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to wu.sheng@foxmail.com.
 
 # Screenshots
-- Topological graph of application clusters.
-<img src="https://sky-walking.github.io/page-resources/3.0/topological_graph.png?forceUpdate=0"/>
+- Topological graph of application clusters based on Spring Cloud.
+<img src="https://sky-walking.github.io/page-resources/3.1/topological_graph.png?forceUpdate=0"/>
+
+- Topological graph of application clusters based on dubbox and [motan](https://github.com/weibocom/motan).
+<img src="https://sky-walking.github.io/page-resources/3.1/topological_graph_test_project.png?forceUpdate=0"/>
 
 - Trace query.
-<img src="https://sky-walking.github.io/page-resources/3.0/trace_segment.png"/>
+<img src="https://sky-walking.github.io/page-resources/3.1/trace_segment.png"/>
 
 - Span detail.
 <img src="https://sky-walking.github.io/page-resources/3.0/span.png" />

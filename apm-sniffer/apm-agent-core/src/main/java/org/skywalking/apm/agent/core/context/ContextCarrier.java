@@ -1,19 +1,17 @@
 package org.skywalking.apm.agent.core.context;
 
-import org.skywalking.apm.util.StringUtil;
-import org.skywalking.apm.trace.Span;
-import org.skywalking.apm.trace.TraceId.DistributedTraceId;
-import org.skywalking.apm.trace.TraceId.PropagatedTraceId;
-import org.skywalking.apm.trace.TraceSegment;
-import org.skywalking.apm.trace.tag.Tags;
-
 import java.io.Serializable;
-import java.util.LinkedList;
 import java.util.List;
+import org.skywalking.apm.agent.core.context.ids.DistributedTraceId;
+import org.skywalking.apm.agent.core.context.ids.ID;
+import org.skywalking.apm.agent.core.context.ids.PropagatedTraceId;
+import org.skywalking.apm.agent.core.context.trace.TraceSegment;
+import org.skywalking.apm.agent.core.dictionary.DictionaryUtil;
+import org.skywalking.apm.util.StringUtil;
 
 /**
- * {@link ContextCarrier} is a data carrier of {@link TracerContext}.
- * It holds the snapshot (current state) of {@link TracerContext}.
+ * {@link ContextCarrier} is a data carrier of {@link TracingContext}.
+ * It holds the snapshot (current state) of {@link TracingContext}.
  * <p>
  * Created by wusheng on 2017/2/17.
  */
@@ -21,32 +19,22 @@ public class ContextCarrier implements Serializable {
     /**
      * {@link TraceSegment#traceSegmentId}
      */
-    private String traceSegmentId;
+    private ID traceSegmentId;
 
-    /**
-     * {@link Span#spanId}
-     */
     private int spanId = -1;
 
-    /**
-     * {@link TraceSegment#applicationCode}
-     */
-    private String applicationCode;
+    private int applicationInstanceId = DictionaryUtil.nullValue();
 
-    /**
-     * {@link Tags#PEER_HOST}
-     */
     private String peerHost;
+
+    private String entryOperationName;
+
+    private String parentOperationName;
 
     /**
      * {@link DistributedTraceId}
      */
-    private List<DistributedTraceId> distributedTraceIds;
-
-    /**
-     * {@link TraceSegment#sampled}
-     */
-    private boolean sampled;
+    private DistributedTraceId primaryDistributedTraceId;
 
     /**
      * Serialize this {@link ContextCarrier} to a {@link String},
@@ -55,13 +43,18 @@ public class ContextCarrier implements Serializable {
      * @return the serialization string.
      */
     public String serialize() {
-        return StringUtil.join('|',
-            this.getTraceSegmentId(),
-            this.getSpanId() + "",
-            this.getApplicationCode(),
-            this.getPeerHost(),
-            this.serializeDistributedTraceIds(),
-            this.isSampled() ? "1" : "0");
+        if (this.isValid()) {
+            return StringUtil.join('|',
+                this.getTraceSegmentId().toBase64(),
+                this.getSpanId() + "",
+                this.getApplicationInstanceId() + "",
+                this.getPeerHost(),
+                this.getEntryOperationName(),
+                this.getParentOperationName(),
+                this.getPrimaryDistributedTraceId());
+        } else {
+            return "";
+        }
     }
 
     /**
@@ -71,15 +64,16 @@ public class ContextCarrier implements Serializable {
      */
     public ContextCarrier deserialize(String text) {
         if (text != null) {
-            String[] parts = text.split("\\|", 6);
-            if (parts.length == 6) {
+            String[] parts = text.split("\\|", 7);
+            if (parts.length == 7) {
                 try {
-                    setSpanId(Integer.parseInt(parts[1]));
-                    setTraceSegmentId(parts[0]);
-                    setApplicationCode(parts[2]);
-                    setPeerHost(parts[3]);
-                    setDistributedTraceIds(deserializeDistributedTraceIds(parts[4]));
-                    setSampled("1".equals(parts[5]));
+                    this.traceSegmentId = new ID(parts[0]);
+                    this.spanId = Integer.parseInt(parts[1]);
+                    this.applicationInstanceId = Integer.parseInt(parts[2]);
+                    this.peerHost = parts[3];
+                    this.entryOperationName = parts[4];
+                    this.parentOperationName = parts[5];
+                    this.primaryDistributedTraceId = new PropagatedTraceId(parts[6]);
                 } catch (NumberFormatException e) {
 
                 }
@@ -94,14 +88,36 @@ public class ContextCarrier implements Serializable {
      * @return true for unbroken {@link ContextCarrier} or no-initialized. Otherwise, false;
      */
     public boolean isValid() {
-        return !StringUtil.isEmpty(traceSegmentId)
+        return traceSegmentId != null
             && getSpanId() > -1
-            && !StringUtil.isEmpty(applicationCode)
+            && applicationInstanceId != DictionaryUtil.nullValue()
             && !StringUtil.isEmpty(peerHost)
-            && distributedTraceIds != null;
+            && !StringUtil.isEmpty(entryOperationName)
+            && !StringUtil.isEmpty(parentOperationName)
+            && primaryDistributedTraceId != null;
     }
 
-    public String getTraceSegmentId() {
+    public String getEntryOperationName() {
+        return entryOperationName;
+    }
+
+    void setEntryOperationName(String entryOperationName) {
+        this.entryOperationName = '#' + entryOperationName;
+    }
+
+    void setEntryOperationId(int entryOperationId) {
+        this.entryOperationName = entryOperationId + "";
+    }
+
+    void setParentOperationName(String parentOperationName) {
+        this.parentOperationName = '#' + parentOperationName;
+    }
+
+    void setParentOperationId(int parentOperationId) {
+        this.parentOperationName = parentOperationId + "";
+    }
+
+    public ID getTraceSegmentId() {
         return traceSegmentId;
     }
 
@@ -109,83 +125,47 @@ public class ContextCarrier implements Serializable {
         return spanId;
     }
 
-    public void setTraceSegmentId(String traceSegmentId) {
+    void setTraceSegmentId(ID traceSegmentId) {
         this.traceSegmentId = traceSegmentId;
     }
 
-    public void setSpanId(int spanId) {
+    void setSpanId(int spanId) {
         this.spanId = spanId;
     }
 
-    public String getApplicationCode() {
-        return applicationCode;
+    public int getApplicationInstanceId() {
+        return applicationInstanceId;
     }
 
-    public void setApplicationCode(String applicationCode) {
-        this.applicationCode = applicationCode;
+    void setApplicationInstanceId(int applicationInstanceId) {
+        this.applicationInstanceId = applicationInstanceId;
     }
 
     public String getPeerHost() {
         return peerHost;
     }
 
-    public void setPeerHost(String peerHost) {
-        this.peerHost = peerHost;
+    void setPeerHost(String peerHost) {
+        this.peerHost = '#' + peerHost;
     }
 
-    public List<DistributedTraceId> getDistributedTraceIds() {
-        return distributedTraceIds;
+    void setPeerId(int peerId) {
+        this.peerHost = peerId + "";
     }
 
-    public boolean isSampled() {
-        return sampled;
-    }
-
-    public void setSampled(boolean sampled) {
-        this.sampled = sampled;
+    public DistributedTraceId getDistributedTraceId() {
+        return primaryDistributedTraceId;
     }
 
     public void setDistributedTraceIds(List<DistributedTraceId> distributedTraceIds) {
-        this.distributedTraceIds = distributedTraceIds;
+        this.primaryDistributedTraceId = distributedTraceIds.get(0);
     }
 
-    /**
-     * Serialize {@link #distributedTraceIds} to a string, with ',' split.
-     *
-     * @return string, represents all {@link DistributedTraceId}
-     */
-    private String serializeDistributedTraceIds() {
-        StringBuilder traceIdString = new StringBuilder();
-        if (distributedTraceIds != null) {
-            boolean first = true;
-            for (DistributedTraceId distributedTraceId : distributedTraceIds) {
-                if (first) {
-                    first = false;
-                } else {
-                    traceIdString.append(",");
-                }
-                traceIdString.append(distributedTraceId.get());
-            }
-        }
-        return traceIdString.toString();
+    private String getPrimaryDistributedTraceId() {
+        return primaryDistributedTraceId.toBase64();
     }
 
-    /**
-     * Deserialize {@link #distributedTraceIds} from a text, whith
-     *
-     * @param text
-     * @return
-     */
-    private List<DistributedTraceId> deserializeDistributedTraceIds(String text) {
-        if (StringUtil.isEmpty(text)) {
-            return null;
-        }
-        String[] propagationTraceIdValues = text.split(",");
-        List<DistributedTraceId> traceIds = new LinkedList<DistributedTraceId>();
-        for (String propagationTraceIdValue : propagationTraceIdValues) {
-            traceIds.add(new PropagatedTraceId(propagationTraceIdValue));
-        }
-        return traceIds;
+    public String getParentOperationName() {
+        return parentOperationName;
     }
-
 }

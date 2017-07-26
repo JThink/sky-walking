@@ -5,7 +5,7 @@
 
     <groupId>org.skywalking</groupId>
     <artifactId>apm</artifactId>
-    <version>3.1-2017</version>
+    <version>3.2-2017</version>
 
     <licenses>
         <license>
@@ -46,6 +46,7 @@
         <module>apm-sniffer</module>
         <module>apm-application-toolkit</module>
         <module>apm-collector</module>
+        <module>apm-network</module>
     </modules>
     <packaging>pom</packaging>
 
@@ -71,12 +72,6 @@
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.8.0</version>
-        </dependency>
-
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -177,7 +172,9 @@
                     </formats>
                     <instrumentation>
                         <excludes>
-                            <exclude>org/skywalking/apm/trace/proto/*.class</exclude>
+                            <exclude>org/skywalking/apm/network/**/*.class</exclude>
+                            <exclude>org/skywalking/apm/collector/remote/grpc/**/*.class</exclude>
+                            <exclude>org/skywalking/apm/agent/core/context/ids/base64/*.class</exclude>
                         </excludes>
                     </instrumentation>
                 </configuration>
@@ -202,6 +199,10 @@
                             <encoding>UTF-8</encoding>
                             <consoleOutput>true</consoleOutput>
                             <failsOnError>true</failsOnError>
+                            <excludes>org/skywalking/apm/network/**/*.java,
+                                org/skywalking/apm/collector/remote/grpc/**/*.java,
+                                org/skywalking/apm/agent/core/context/ids/base64/*.java
+                            </excludes>
                         </configuration>
                         <goals>
                             <goal>check</goal>

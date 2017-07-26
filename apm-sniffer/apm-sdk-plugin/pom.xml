@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.skywalking</groupId>
         <artifactId>apm-sniffer</artifactId>
-        <version>3.1-2017</version>
+        <version>3.2-2017</version>
     </parent>
 
     <artifactId>apm-sdk-plugin</artifactId>
@@ -40,7 +40,7 @@
         </dependency>
         <dependency>
             <groupId>org.skywalking</groupId>
-            <artifactId>apm-sniffer-mock</artifactId>
+            <artifactId>apm-test-tools</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>

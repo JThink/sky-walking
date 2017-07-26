@@ -2,6 +2,7 @@ package org.skywalking.apm.agent.core.conf;
 
 import java.util.LinkedList;
 import java.util.List;
+import org.skywalking.apm.agent.core.context.trace.TraceSegment;
 import org.skywalking.apm.agent.core.logging.LogLevel;
 import org.skywalking.apm.agent.core.logging.WriterFactory;
 
@@ -20,14 +21,31 @@ public class Config {
         public static String APPLICATION_CODE = "";
 
         /**
-         * One, means sampling OFF.
-         * Greater than one, select one trace in every N traces.
-         * Zero and negative number are illegal.
+         * Negative or zero means off, by default.
+         * {@link #SAMPLE_N_PER_3_SECS} means sampling N {@link TraceSegment} in 10 seconds tops.
          */
-        public static int SAMPLING_CYCLE = 1;
+        public static int SAMPLE_N_PER_3_SECS = -1;
+
+        /**
+         * If the operation name of the first span is included in this set,
+         * this segment should be ignored.
+         */
+        public static String IGNORE_SUFFIX = ".jpg,.jpeg,.js,.css,.png,.bmp,.gif,.ico,.mp3,.mp4,.html";
     }
 
     public static class Collector {
+        /**
+         * grpc channel status check interval
+         */
+        public static long GRPC_CHANNEL_CHECK_INTERVAL = 30;
+        /**
+         * application and service registry check interval
+         */
+        public static long APP_AND_SERVICE_REGISTER_CHECK_INTERVAL = 10;
+        /**
+         * discovery rest check interval
+         */
+        public static long DISCOVERY_CHECK_INTERVAL = 60;
         /**
          * Collector REST-Service address.
          * e.g.
@@ -37,23 +55,31 @@ public class Config {
         public static String SERVERS = "";
 
         /**
-         * Collector receive segments REST-Service name.
+         * Collector service discovery REST service name
          */
-        public static String SERVICE_NAME = "/segments";
+        public static String DISCOVERY_SERVICE_NAME = "/grpc/addresses";
+    }
 
+    public static class Jvm {
         /**
-         * The max size to send traces per rest-service call.
+         * The buffer size of collected JVM info.
          */
-        public static int BATCH_SIZE = 50;
+        public static int BUFFER_SIZE = 60 * 10;
     }
 
     public static class Buffer {
+        public static int CHANNEL_SIZE = 5;
+
+        public static int BUFFER_SIZE = 300;
+    }
+
+    public static class Dictionary {
         /**
-         * The in-memory buffer size. Based on Disruptor, this value must be 2^n.
-         *
-         * @see {https://github.com/LMAX-Exchange/disruptor}
+         * The buffer size of application codes and peer
          */
-        public static int SIZE = 512;
+        public static int APPLICATION_CODE_BUFFER_SIZE = 10 * 10000;
+
+        public static int OPERATION_NAME_BUFFER_SIZE = 1000 * 10000;
     }
 
     public static class Logging {
@@ -95,6 +121,12 @@ public class Config {
          */
         public static List DISABLED_PLUGINS = new LinkedList();
 
+        /**
+         * Name of force enable plugin, The value spilt by <code>,</code>
+         * if you have multiple plugins need to enable.
+         */
+        public static List FORCE_ENABLE_PLUGINS = new LinkedList();
+
         public static class MongoDB {
             /**
              * If true, trace all the parameters, default is false.
@@ -103,12 +135,12 @@ public class Config {
             public static boolean TRACE_PARAM = false;
         }
 
-        public static class Http {
+        public static class Propagation {
 
             /**
-             * The header name of context data.
+             * The header name of cross process propagation data.
              */
-            public static String HEADER_NAME_OF_CONTEXT_DATA = "SWTraceContext";
+            public static String HEADER_NAME = "sw3";
         }
     }
 }
